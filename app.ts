@@ -79,10 +79,9 @@ class MachineSaleSubscriber implements ISubscriber {
           machine.stockLevel -= soldQuantity;
           console.log(`Machine ${machine.id} sold ${soldQuantity} units, stock updated to: ${machine.stockLevel}`);
 
-          // ตรวจสอบถ้าสต็อกลดต่ำกว่า 3
-          if (machine.stockLevel < 3 && !this.lowStockMachines.has(machine.id)) {
+          if (machine.stockLevel < 3 && !this.lowStockMachines.has(machine.id)) {   // Stock less than 3
             this.lowStockMachines.add(machine.id);
-            this.pubSubService.publish(new LowStockWarningEvent(machine.id)); // แจ้งเตือนสต็อกต่ำ
+            this.pubSubService.publish(new LowStockWarningEvent(machine.id));       // Low stock alert
           }
         } else {
           console.log(`Error: Machine ${machine.id} does not have enough stock to sell ${soldQuantity} units.`);
@@ -91,8 +90,6 @@ class MachineSaleSubscriber implements ISubscriber {
     }
   }
 }
-
-
 
 class MachineRefillSubscriber implements ISubscriber {
   private lowStockMachines = new Set<string>();
@@ -108,17 +105,15 @@ class MachineRefillSubscriber implements ISubscriber {
         
         machine.stockLevel += refillQuantity;
         console.log(`Machine ${machine.id} stock refilled from ${initialStock} to ${machine.stockLevel}.`);
-
-        // หากสต็อกมากกว่าหรือเท่ากับ 3 และมีการเติมสต็อก จะมีการแจ้งเตือนว่าเป็นปกติ
+        
         if (machine.stockLevel >= 3 && this.lowStockMachines.has(machine.id)) {
           this.lowStockMachines.delete(machine.id);
-          this.pubSubService.publish(new StockLevel10Event(machine.id));  // แจ้งเตือนสต็อกกลับมาปกติ
+          this.pubSubService.publish(new StockLevel10Event(machine.id));        // Normal stock alert
         }
       }
     }
   }
 }
-
 
 class StockWarningSubscriber implements ISubscriber{
   handle(event:IEvent):void{
